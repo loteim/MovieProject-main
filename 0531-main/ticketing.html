@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon"
+        href="https://www.liblogo.com/img-logo/max/he676hca4-hermes-logo-hermes-investgating-overseas-chinese-buying-behaviour-for-hermes.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seat Selection</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .screen {
+            display: flex;
+            justify-content: center;
+            width: 1000px;
+            border: 3px solid black;
+            font-size: larger;
+            margin-top: 20px;
+            padding: 10px;
+        }
+
+        .ticketing {
+            display: grid;
+            grid-template-columns: auto repeat(20, auto);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .seat {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid black;
+            cursor: pointer;
+        }
+
+        .seat.selected {
+            background-color: lightgray;
+        }
+
+        .choiceButton {
+            width: 300px;
+            height: 100px;
+            font-size: larger;
+            display: none;
+            margin-top: 20px;
+        }
+
+        .selctSeat {
+            font-size: 20px;
+            display: none;
+            background-color: #9f3ff8;
+            color: black;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .seat:nth-child(6) {
+            margin-right: 50px;
+        }
+
+        .seat:nth-child(16) {
+            margin-right: 50px;
+        }
+
+        .seat:nth-child(21n+1) {
+            border: none;
+        }
+
+        .disabled {
+            background-color: #9f3ff8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="screen">SCREEN</div>
+    <div class="ticketing"></div>
+    <div class="selctSeat" name="selectSeat"></div>
+    <button class="choiceButton">선택완료</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const size = 20;
+            const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+            const selectedSeats = [];
+            const ticketingDiv = document.querySelector('.ticketing');
+            const choiceButton = document.querySelector('.choiceButton');
+            const selctSeat = document.querySelector('.selctSeat');
+
+            rows.forEach(row => {
+                for (let i = 0; i < size + 1; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'seat';
+                    cell.setAttribute('data-seat', `${row}${i}`);
+
+                    if (i === 0) {
+                        cell.textContent = row;
+                        cell.classList.add('row-label');
+                    } else {
+                        cell.addEventListener('click', (e) => {
+                            cell.classList.toggle('selected');
+                            const nowSeat = e.target.getAttribute('data-seat');
+                            const index = selectedSeats.indexOf(nowSeat);
+
+                            if (index === -1) {
+                                selectedSeats.push(nowSeat);
+                            } else {
+                                selectedSeats.splice(index, 1);
+                            }
+                            updateButtonVisibility();
+                        });
+                    }
+                    ticketingDiv.appendChild(cell);
+                }
+            });
+
+            function updateButtonVisibility() {
+                const selected = document.querySelectorAll('.selected');
+                choiceButton.style.display = selected.length > 0 ? 'block' : 'none';
+                selctSeat.style.display = selected.length > 0 ? 'block' : 'none';
+                selctSeat.innerHTML = `현재 선택된 좌석: ${selectedSeats.join(', ')}`;
+            }
+
+            choiceButton.addEventListener('click', () => {
+                const selectedSeatInfo = selectedSeats.join(', ');
+
+                const form = new FormData();
+                form.append('selectedSeatInfo', selectedSeatInfo);
+                const form2 = new URLSearchParams(form);
+
+                fetch('http://127.0.0.1:8080/vgc/myJsp.jsp', {
+                    method: 'post',
+                    body: form2
+                }).then((res) => {
+                    return res.json();  // JSON 응답으로 처리
+                }).then((data) => {
+                    if (data.code === 200) {
+                        alert(data.msg);
+                    } else {
+                        alert('예약에 실패했습니다.');
+                    }
+                });
+            });
+        });
+
+    </script>
+</body>
+
+</html>
