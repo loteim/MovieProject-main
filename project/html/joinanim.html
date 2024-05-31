@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
     <title>회원가입</title>
     <link href="/project/assets/css/joinform.css" rel="stylesheet">
     <link rel="stylesheet" href="/project/assets/css/index_style.css">
 </head>
-
 <body>
     <header>
       <div class="title">
@@ -47,34 +45,30 @@
         </div>
       </div>
     </header>
-
     <main>
-        <form action="http://127.0.0.1:8080/imsi/signup.jsp" method="post">
+        <form>
             <fieldset>
                 <input type="text" id="useremail" name="useremail" placeholder="이메일" value="111@111.com">
             </fieldset>
             <div class="mailsuccess-message hide">사용할 수 있는 이메일입니다</div>
             <div class="mailfail-message hide">이메일 형식이 아닙니다</div>
-
+            <div class="mailduplicate-message hide">이미 사용중인 이메일입니다</div>
             <fieldset>
                 <input type="text" id="username" name="userId" placeholder="아이디" value="1234"/>
             </fieldset>
-
             <div class="success-message hide">사용할 수 있는 아이디입니다</div>
             <div class="failure-message hide">아이디는 4~12글자이어야 합니다</div>
             <div class="failure-message2 hide">영어 또는 숫자만 가능합니다</div>
-
+            <div class="duplicate-message hide">이미 사용중인 아이디입니다</div>
             <fieldset>
                 <input type="password" id="password" name="userPassword" placeholder="비밀번호" value="qweasd123#"/>
             </fieldset>
             <div class="passsuccess-message hide">사용할 수 있는 비밀번호입니다</div>
             <div class="strongPassword-message hide">8글자 이상, 영문, 숫자, 특수문자(@$!%*#?&)를 사용하세요</div>
-
             <fieldset>
                 <input type="password" id="password-retype" placeholder="비밀번호 확인" value="qweasd123#"/>
             </fieldset>
             <div class="mismatch-message hide">비밀번호가 일치하지 않습니다</div>
-
             <fieldset>
                 <input type="text" id="name" name="userName" placeholder="성명" value="1"/>
             </fieldset>
@@ -82,22 +76,22 @@
                 <input type="text" id="callname" name="userCallname" placeholder="전화번호" value="2"/>
             </fieldset>
             <div class="notnum-message hide">숫자만 적어야 합니다.</div>
-
             <fieldset class="signup">
                 <button type="button" id="signupim">회원가입</button>
             </fieldset>
         </form>
     </main>
-
     <script>
         let useremail = document.querySelector('#useremail'); 
         let mailsuccessmessage = document.querySelector('.mailsuccess-message'); 
         let mailfailmessage = document.querySelector('.mailfail-message'); 
+        let mailduplicateMessage = document.querySelector('.mailduplicate-message');
 
         let elusername = document.querySelector('#username'); 
         let elSuccessMessage = document.querySelector('.success-message'); 
         let elFailureMessage = document.querySelector('.failure-message');
         let elFailureMessageTwo = document.querySelector('.failure-message2'); 
+        let elDuplicateMessage = document.querySelector('.duplicate-message');
 
         let elInputPassword = document.querySelector('#password');
         let passsuccessmessage = document.querySelector('.passsuccess-message');
@@ -139,42 +133,71 @@
             return /^\d*$/.test(str);
         }
 
-        useremail.onkeyup = function () {
+        async function checkDuplicate(field, value) {
+            const res = await fetch(`http://127.0.0.1:8080/imsi/checkduplicate.jsp?field=${field}&value=${value}`);
+            const data = await res.json();
+            return data.isDuplicate;
+        }
+
+        useremail.onkeyup = async function () {
             if (isValidEmail(useremail.value)) {
-                mailsuccessmessage.classList.remove('hide');
-                mailfailmessage.classList.add('hide');
-                required1 = 1;
+                const isDuplicate = await checkDuplicate('useremail', useremail.value);
+                if (isDuplicate) {
+                    mailduplicateMessage.classList.remove('hide');
+                    mailsuccessmessage.classList.add('hide');
+                    mailfailmessage.classList.add('hide');
+                    required1 = 0;
+                } else {
+                    mailsuccessmessage.classList.remove('hide');
+                    mailfailmessage.classList.add('hide');
+                    mailduplicateMessage.classList.add('hide');
+                    required1 = 1;
+                }
             } else {
                 mailfailmessage.classList.remove('hide');
                 mailsuccessmessage.classList.add('hide');
+                mailduplicateMessage.classList.add('hide');
                 required1 = 0;
             }
             notdisabled = required1 + required2 + required3 + required4 + required5 + required6;
             signup.disabled = notdisabled < requiredFilledCount;
         }
 
-        elusername.onkeyup = function () {
+        elusername.onkeyup = async function () {
             if (elusername.value.length !== 0) {
                 if (onlyNumberAndEnglish(elusername.value) === false) {
                     elSuccessMessage.classList.add('hide');
                     elFailureMessage.classList.add('hide');
                     elFailureMessageTwo.classList.remove('hide');
+                    elDuplicateMessage.classList.add('hide');
                     required2 = 0;
                 } else if (idLength(elusername.value) === false) {
                     elSuccessMessage.classList.add('hide');
                     elFailureMessage.classList.remove('hide');
                     elFailureMessageTwo.classList.add('hide');
+                    elDuplicateMessage.classList.add('hide');
                     required2 = 0;
                 } else {
-                    elSuccessMessage.classList.remove('hide');
-                    elFailureMessage.classList.add('hide');
-                    elFailureMessageTwo.classList.add('hide');
-                    required2 = 1;
+                    const isDuplicate = await checkDuplicate('userId', elusername.value);
+                    if (isDuplicate) {
+                        elDuplicateMessage.classList.remove('hide');
+                        elSuccessMessage.classList.add('hide');
+                        elFailureMessage.classList.add('hide');
+                        elFailureMessageTwo.classList.add('hide');
+                        required2 = 0;
+                    } else {
+                        elSuccessMessage.classList.remove('hide');
+                        elFailureMessage.classList.add('hide');
+                        elFailureMessageTwo.classList.add('hide');
+                        elDuplicateMessage.classList.add('hide');
+                        required2 = 1;
+                    }
                 }
             } else {
                 elSuccessMessage.classList.add('hide');
                 elFailureMessage.classList.add('hide');
                 elFailureMessageTwo.classList.add('hide');
+                elDuplicateMessage.classList.add('hide');
                 required2 = 0;
             }
             notdisabled = required1 + required2 + required3 + required4 + required5 + required6;
@@ -277,5 +300,4 @@
         }
     </script>
 </body>
-
 </html>
