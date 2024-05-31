@@ -1,3 +1,4 @@
+<%@page import="java.security.MessageDigest"%>
 <%@page import="java.sql.ResultSet"%>
 <%@page import="java.sql.PreparedStatement"%>
 <%@page import="java.sql.SQLException"%>
@@ -18,6 +19,17 @@
 	System.out.println(userPassword);
 	System.out.println(userName);
 	System.out.println(userCallname);
+	
+	MessageDigest md = null;
+	md = MessageDigest.getInstance("sha256");
+	md.update(userPassword.getBytes());
+	byte[] pwd = md.digest();
+	String result2 = "";
+	for(byte p : pwd) {
+	  // 10진수 숫자를 16진수로 변환
+	  result2 += String.format("%02x", p);
+	}
+	System.out.println(result2);
 
 	String DRIVER_CLASS_NAME = "org.mariadb.jdbc.Driver";
 	String URL = "jdbc:mariadb://localhost:3306/project";
@@ -32,7 +44,7 @@
 	PreparedStatement stmt = con.prepareStatement(sql);;
 	stmt.setString(1, userEmail);
 	stmt.setString(2, userId);
-	stmt.setString(3, userPassword);
+	stmt.setString(3, result2.toString());
 	stmt.setString(4, userName);
 	stmt.setString(5, userCallname);
 	int result = stmt.executeUpdate();
