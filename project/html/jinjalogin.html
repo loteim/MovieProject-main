@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>로그인</title>
+    <link href="/project/assets/css/pclogin.css" rel="stylesheet">
+    <link rel="stylesheet" href="/project/assets/css/index_style.css">
+</head>
+
+<body>
+    <header>
+      <div class="title">
+        <div class="title_name">
+          <h1 class="title_t">꼬랩★영화관</h1>
+        </div>
+        <div class="title_menu">
+          <nav>
+            <ul class="menu_a">
+              <li>
+                <a href="#">영화목록</a>
+                <ul class="submenu_a">
+                  <li><a href="#">영화1</a></li>
+                  <li><a href="#">영화2</a></li>
+                </ul>
+              </li>
+              <li>
+                <a href="#">예약</a>
+                <ul class="submenu_b">
+                  <li><a href="#">예약1</a></li>
+                  <li><a href="#">예약2</a></li>
+                </ul>
+              </li>
+              <li>
+                <a href="#">극장</a>
+                <ul class="submenu_c">
+                  <li><a href="#">극장1</a></li>
+                  <li><a href="#">극장2</a></li>
+                </ul>
+              </li>
+            </ul>
+            <ul class="menu_b">
+              <li><a href="/project/html/jinjalogin.html">로그인</a></li>
+              <li><a href="/project/html/joinanim.html">회원가입</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
+    
+    <div id="wrap">
+        <div id="container">
+            <div class="loginBox">
+                <div class="loginForm">
+                    <input type="text" placeholder="아이디를 입력하세요." class="id" id="id" name="userId" value="1234">
+                    <input type="password" placeholder="비밀번호를 입력하세요." class="pw" id="pw" name="userPassword" value="qweasd123#">
+                    <button type="button" class="login" id="login">로그인</button>
+                    <button type="button" class="find" id="find">비밀번호 찾기</button>
+                    <button type="button" class="joinmnt" id="joinmnt">회원가입</button>
+                </div>
+
+                <div class="socialForm">
+                    <a href="#" class="kakao">카카오톡 계정으로 로그인</a>
+                    <a href="#" class="fbook">페이스북 계정으로 로그인</a>
+                    <a href="#" class="naver">네이버 계정으로 로그인</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const id = document.getElementById('id');
+        const password = document.getElementById('pw');
+        const login = document.getElementById('login');
+        const joinmnt = document.getElementById('joinmnt');
+        const find = document.getElementById('find');
+
+        login.addEventListener('click', async () => {
+            const res = await sendData();
+            alert(res.msg);
+
+            if (res.code == 0) {
+                location = "/main";
+            }
+        });
+
+        find.addEventListener('click', () => {
+            window.location.href = 'idpwfind.html';
+        });
+
+        joinmnt.addEventListener('click', () => {
+            window.location.href = 'joinanim.html';
+        });
+
+        async function sendData() {
+            const userId = document.querySelector('#id').value;
+            const userPassword = document.querySelector('#pw').value;
+
+            const formData = new FormData();
+            formData.append('id', userId);
+            formData.append('pw', userPassword);
+
+            const payload = new URLSearchParams(formData);
+
+            const res = await fetch('http://127.0.0.1:8080/imsi/login.jsp', {
+                method: 'post',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: payload
+            });
+
+            const data = await res.json();
+            return data;
+        }
+    </script>
+</body>
+
+</html>
